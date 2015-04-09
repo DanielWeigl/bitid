@@ -80,11 +80,17 @@ be implemented by the server in order to prevent replay attacks.
 For HD wallets, the following BIP32 derivation path is proposed:
 
 <pre>
-m/0'/0xb11e'/sha32uri/n
+m/idAccount'/0xb11e'/sha32(IV | uri)/n
 
 Where:
+idAccount = Identity account (default 0)
 uri = "bitid:www.site.com/callback" (no parameters)
-sha32uri = 32 highest bits of sha256(uri)
+IV = xPub(m/0'/0xb11e')
+    (initialization vector, to prevent attackers generating a domain name which sha256-hash has
+    the the same first 32 bit as an other, to snoop users public key - which might lead to privacy leaks)
+sha32(IV | uri) = 32 highest bits of sha256(IV | uri)  
+    (IV...direct byte representation, uri...byte representation of the UTF8 encoded uri)
+    
 n = identity index, in case multiple ids are needed for this uri (default = 0)
 </pre>
 
