@@ -77,15 +77,51 @@ be implemented by the server in order to prevent replay attacks.
 
 ## HD wallet derivation path
 
-For HD wallets, the following BIP32 derivation path is proposed:
+For HD wallets, the derivation scheme is based on Trezors [SLIP0013](http://doc.satoshilabs.com/slips/slip-0013.html)
+
+To derive a per service identity, use following scheme:
+  
+let `a` be the RFC 3986 URI `proto://[user@]host[:port][/path]`
+where the BitID response will be send to, but only up to (excluding) the first `?`
+
+Example  
+<pre>
+  bitid:www.site.com/callback?x=NONCE  -->  https://www.site.com/callback
+</pre>
+
+And let `b` be an optional per-service index (32-bit unsigned integer, default=0x00000000)
+
+ 1. Concatenate the little endian representation of index with the URI.
+ 2. Compute the SHA256 hash of the result. `sha256(a | b)`
+ 3. Let’s take first 128 bits of the hash and split it into four 32-bit numbers `A`, `B`, `C`, `D`.
+ 4. Set highest bits of numbers `A`, `B`, `C`, `D` to 1 (to enable hardened derivation)
+ 5. Derive the following [BIP32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki) Path,
+    based on the masterseed `m` with an optional user-provided password `pwd` according to
+    [BIP39](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki)
 
 <pre>
-m/0'/0xb11e'/sha32uri/n
+(m + pwd)/13’/A’/B’/C’/D’ 
+</pre>
 
-Where:
-uri = "bitid:www.site.com/callback" (no parameters)
-sha32uri = 32 highest bits of sha256(uri)
-n = identity index, in case multiple ids are needed for this uri (default = 0)
+The password can be used to have seperated identity accounts based on the same masterseed. If your app does not support more than one identiy or for the default identity the password should be the empty string.
+
+# Test vectors
+
+<pre>
+  BITID URL = "bitid:bitcoin.org/login?x=123" 
+  MASTERSEED WORDLIST = "abandon, abandon, abandon, abandon, abandon, abandon, abandon, abandon, abandon, abandon, abandon, about"
+  
+  this results in following:
+  a) Without password (PWD="")
+    WEBSITE = https://bitcoin.org/login
+    A = 0x9D38E2D0, B = 0xA994834C, C = 0xE02DE3F3, D = 0xEEBF0411
+    PUBKEY = 0x030a79ba07392dafab29e2bf01917dcb2b1cb235ccad9c7a59639ad0f84c3f619c
+    PRODNET ADDRESS = "1LbxwgBqp6VYXfoadiLRVF1jaDxqL4SdRz"
+  
+  b) With password (PWD="SecondIdentity")
+    A = 0x9D38E2D0, B = 0xA994834C, C = 0xE02DE3F3, D = 0xEEBF0411
+    PUBKEY = 0x0265da9147121706403032fb22107206b0c510de65a19711eca5781edf67639598
+    PRODNET ADDRESS = "11XiTMf6dULM8Uk7QohJMDEvdW6Lqy2gG"
 </pre>
 
 # Rationale
