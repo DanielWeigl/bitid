@@ -64,18 +64,39 @@ following dialog options should be shown :
 After a Bitcoin address is chosen, or created on the fly, the full bitid URI is signed with 
 the address’ private key. The signature and public key are then POSTed to the callback url.
 
-**Note :** the signature must comply to the `\x18Bitcoin Signed Message:\n#{message.size.chr}#{message}` format
+**Note :** the signature must comply to the `Bitcoin Signed Message:\n#{message.size.chr}#{message}` format
 
 **Normalization:** the URI shouldn't be changed at all before signature, and the callback should also be an exact reflection of the URI (including uppercases, escaped characters, etc)
 
-<pre>
-\x18Bitcoin Signed Message:
-%bitid:www.site.com/callback?x=NONCE
-</pre>
+e.g:
+
+    Bitcoin Signed Message:
+    bitid:www.site.com/callback?x=NONCE
+
+Optional, if there is also metadata in the response, the message contains the SHA265 (hex in uppercase) of the serialized metadata, separated by a ";"
+
+    Bitcoin Signed Message:
+    bitid:www.site.com/callback?x=NONCE;9EDDF573CB509F1F62DF633E25C052AC1B2A0FF9241E70223C77C73E834C0045
+
 
 The receiving server verifies the validity of the signature and proceeds to authenticate the user. 
 Server-side, only the user's public key is stored. A timeout for the validity of the nonce should 
 be implemented by the server in order to prevent replay attacks.
+
+## Metadata
+
+The server can request the client to ask its user to add certain metadata to the sign-in request by adding a `&s=...` to the bitid-uri. See [here](bitid_client_metadata.md) for further information.
+
+## Request
+
+The client makes an Http-POST request to the url specified by the `bitid:` URI, with an Json-String containing following fields:
+```
+{
+  'uri': 'bitid:www.site.com/callback?x=NONCE',
+  'address': '1J34vj4wowwPYafbeibZGht3zy3qERoUM1',
+  'signature': ''
+}
+```
 
 ## HD wallet derivation path
 
