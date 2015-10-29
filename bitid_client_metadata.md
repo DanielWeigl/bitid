@@ -119,5 +119,5 @@ Pros:
   Pros: 
   
   - no copy/pasting, typing or mailing of the current receive address
-  - no typing of the vouchers website or redeem code 
+  - no typing of the vouchers website or redeem code
   - if broadly accepted: the BTM does not need a camera to scan QR-Codes, only the client needs a camera
